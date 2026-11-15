@@ -1,4 +1,4 @@
-package io.github.ccch1mneyyy.dsh_app.runtime
+package io.github.sakurajima336.dsh_app.runtime
 
 import java.io.File
 import java.io.IOException
