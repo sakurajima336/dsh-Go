@@ -1,9 +1,11 @@
 /// Where in-app updates come from. Everything network-facing about updates is
 /// configured here; the conventions and trade-offs are in `docs/release.md`.
 ///
-/// Every build asks our own copy of the release files first
-/// ([updateDownloadOrigin]: `/update.json`, `/download/<version>/<file>`), then
-/// GitHub and the public accelerators, and the rate-limited GitHub API last.
+/// Every build asks GitHub ([updateRepo]: the latest release's `update.json`
+/// through GitHub and the public accelerators) first, and the rate-limited
+/// GitHub API last. This fork has no copy of the release files of its own
+/// ([updateDownloadOrigin] is empty); a build can add one with
+/// `DSH_UPDATE_MIRROR`.
 /// Beta builds carry a channel token (`--dart-define=DSH_BETA_CHANNEL_TOKEN`,
 /// put in by `tooling/build-apk.sh`): they ask the beta channel before all of
 /// that ([UpdateChannel], `go.dshtui.com/beta/update.json`,
@@ -20,8 +22,9 @@
 ///   replaces the public GitHub accelerator list (empty string = none).
 library;
 
-/// GitHub repository the releases live in.
-const updateRepo = 'ccch1mneyyy/dsh-go';
+/// GitHub repository the releases live in (this fork's own repository, not
+/// the upstream author's).
+const updateRepo = 'sakurajima336/dsh-go';
 
 /// `releases/latest` of the REST API: tag, notes, assets with sizes and
 /// SHA-256 digests. Unauthenticated: 60 requests per hour per IP.
@@ -45,7 +48,11 @@ const updateMirrorOrigin = 'https://go.dshtui.com';
 /// Our public copy of the release files (an R2 bucket): `/update.json`, the
 /// latest public manifest with absolute asset URLs, and
 /// `/download/<version>/<file>` for every file of every release.
-const updateDownloadOrigin = 'https://dl.dshtui.com';
+/// This fork has no such copy (the upstream author's bucket serves the
+/// upstream app's builds, under the upstream package name), so this is
+/// empty: no copy is asked, and releases come from [updateRepo] on GitHub.
+/// `DSH_UPDATE_MIRROR` can still point a build at a copy.
+const updateDownloadOrigin = '';
 
 /// The beta channel: `<origin>/beta/update.json` and `<origin>/beta/<version>/<file>`,
 /// both behind `Authorization: Bearer <token>`. The token is compiled into beta

@@ -19,10 +19,10 @@ import 'support.dart';
 const _token = 'dshc_0123456789abcdefghijklmnopqrstuvwxyzABCDEFG';
 const _auth = 'Bearer $_token';
 const _feed = 'https://go.dshtui.com/beta/update.json';
-const _api = 'https://api.github.com/repos/ccch1mneyyy/dsh-go/releases/latest';
+const _api = 'https://api.github.com/repos/sakurajima336/dsh-go/releases/latest';
 const _apk = 'dsh-go-1.2.0-arm64.apk';
 const _betaApk = 'https://go.dshtui.com/beta/1.2.0/$_apk';
-const _githubApk = 'https://github.com/ccch1mneyyy/dsh-go/releases/download/v1.2.0/$_apk';
+const _githubApk = 'https://github.com/sakurajima336/dsh-go/releases/download/v1.2.0/$_apk';
 const _dlFeed = 'https://dl.dshtui.com/update.json';
 
 final _bytes = utf8.encode('PK pretend this is the 1.2.0 beta for arm64');
@@ -60,7 +60,10 @@ void _expectTokenOnlyOnChannel(FakeHttp http) {
 }
 
 void main() {
-  final sources = buildUpdateSources(channelToken: _token);
+  // An explicit self-hosted copy, as in the upstream configuration this
+  // channel ships with; the fork's own defaults have no copy (updateRepo
+  // only), which mirror_config_test covers.
+  final sources = buildUpdateSources(channelToken: _token, mirror: 'https://dl.dshtui.com');
 
   group('channel', () {
     test('needs a token and an HTTPS origin', () {
