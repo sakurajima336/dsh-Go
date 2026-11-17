@@ -9876,6 +9876,15 @@ class L10nEn extends L10n {
       'Grant “Display over other apps” so the guard can also cover other apps\' floating windows; without it, the guard only shows inside the app';
 
   @override
+  String get hubBurnInGuardMove => 'Moving label';
+
+  @override
+  String get hubBurnInGuardMoveHint => 'Off shows a plain black screen with no “Working” label';
+
+  @override
+  String get hubBurnInGuardSpeed => 'Bounce speed';
+
+  @override
   String get iosSaveToFiles => 'Save to Files';
 
   @override

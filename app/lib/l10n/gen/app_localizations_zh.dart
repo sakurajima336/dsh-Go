@@ -9351,6 +9351,15 @@ class L10nZh extends L10n {
   String get hubBurnInGuardOverlayHint => '授予「显示在其他应用上层」后，屏保能盖住其他应用的浮窗；不授予时只在应用内显示';
 
   @override
+  String get hubBurnInGuardMove => '移动显示';
+
+  @override
+  String get hubBurnInGuardMoveHint => '关掉后屏保只有纯黑画面，不显示「工作中」';
+
+  @override
+  String get hubBurnInGuardSpeed => '弹跳速度';
+
+  @override
   String get iosSaveToFiles => '存到「文件」';
 
   @override

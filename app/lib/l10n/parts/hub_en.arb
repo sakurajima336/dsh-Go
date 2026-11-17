@@ -190,5 +190,8 @@
   "hubBurnInGuardBounceHint": "“Working” keeps bouncing around the screen like a TV screensaver logo",
   "burnInWorking": "Working",
   "hubBurnInGuardOverlay": "Overlay permission",
-  "hubBurnInGuardOverlayHint": "Grant “Display over other apps” so the guard can also cover other apps' floating windows; without it, the guard only shows inside the app"
+  "hubBurnInGuardOverlayHint": "Grant “Display over other apps” so the guard can also cover other apps' floating windows; without it, the guard only shows inside the app",
+  "hubBurnInGuardMove": "Moving label",
+  "hubBurnInGuardMoveHint": "Off shows a plain black screen with no “Working” label",
+  "hubBurnInGuardSpeed": "Bounce speed"
 }

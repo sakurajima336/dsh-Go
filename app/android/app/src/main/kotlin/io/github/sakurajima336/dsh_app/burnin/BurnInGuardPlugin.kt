@@ -52,6 +52,8 @@ class BurnInGuardPlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
                 BurnInGuard.show(
                     call.argument<String>("mode") ?: "spots",
                     call.argument<String>("text") ?: "Working",
+                    call.argument<Boolean>("move") ?: true,
+                    (call.argument<Double>("speed") ?: 1.0).toFloat(),
                 ),
             )
             "hide" -> {
@@ -114,11 +116,11 @@ object BurnInGuard {
         }
 
     /** True when the window really went up; vendor ROMs can refuse even with permission. */
-    fun show(mode: String, text: String): Boolean {
+    fun show(mode: String, text: String, move: Boolean, speed: Float): Boolean {
         val context = app ?: return false
         hide()
         val wm = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        val guard = BurnInGuardView(context, mode, text) { onTouched() }
+        val guard = BurnInGuardView(context, mode, text, move, speed) { onTouched() }
         val params = WindowManager.LayoutParams(
             WindowManager.LayoutParams.MATCH_PARENT,
             WindowManager.LayoutParams.MATCH_PARENT,
@@ -167,6 +169,8 @@ class BurnInGuardView(
     context: Context,
     private val mode: String,
     private val text: String,
+    private val move: Boolean,
+    private val speed: Float,
     private val onTouch: () -> Unit,
 ) : View(context) {
     private val density = resources.displayMetrics.density
@@ -196,8 +200,8 @@ class BurnInGuardView(
     // bounce 模式：匀速斜飞，撞边反弹并换一种暗色。
     private var posX = 40f * density
     private var posY = 40f * density
-    private var velX = (if (Random.nextBoolean()) 1 else -1) * 110f * density
-    private var velY = (if (Random.nextBoolean()) 1 else -1) * 84f * density
+    private var velX = (if (Random.nextBoolean()) 1 else -1) * 110f * density * speed
+    private var velY = (if (Random.nextBoolean()) 1 else -1) * 84f * density * speed
     private var colorIndex = 0
     private var lastFrameNs = 0L
     private val frameCallback = object : Choreographer.FrameCallback {
@@ -213,6 +217,7 @@ class BurnInGuardView(
     }
 
     fun start() {
+        if (!move) return
         if (mode == "bounce") {
             lastFrameNs = 0L
             Choreographer.getInstance().postFrameCallback(frameCallback)
@@ -265,6 +270,7 @@ class BurnInGuardView(
 
     override fun onDraw(canvas: Canvas) {
         canvas.drawColor(Color.BLACK)
+        if (!move) return
         val baseline: Float
         val x: Float
         if (mode == "bounce") {

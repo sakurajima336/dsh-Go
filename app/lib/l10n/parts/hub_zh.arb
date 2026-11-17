@@ -345,5 +345,8 @@
   "hubBurnInGuardBounceHint": "「工作中」像电视屏保图标一样在屏幕上持续弹跳",
   "burnInWorking": "工作中",
   "hubBurnInGuardOverlay": "悬浮窗权限",
-  "hubBurnInGuardOverlayHint": "授予「显示在其他应用上层」后，屏保能盖住其他应用的浮窗；不授予时只在应用内显示"
+  "hubBurnInGuardOverlayHint": "授予「显示在其他应用上层」后，屏保能盖住其他应用的浮窗；不授予时只在应用内显示",
+  "hubBurnInGuardMove": "移动显示",
+  "hubBurnInGuardMoveHint": "关掉后屏保只有纯黑画面，不显示「工作中」",
+  "hubBurnInGuardSpeed": "弹跳速度"
 }

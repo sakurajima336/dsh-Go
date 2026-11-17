@@ -25,6 +25,8 @@ class AppSettings {
     this.hardwareEnterSends = false,
     this.burnInGuard = true,
     this.burnInGuardMode = BurnInGuardMode.spots,
+    this.burnInGuardMove = true,
+    this.burnInGuardSpeed = 1.0,
     this.chatTextScale = 1.0,
     this.foldCompletedTurns = true,
     this.visualReplies = true,
@@ -67,6 +69,12 @@ class AppSettings {
   /// 屏保里「工作中」的移动方式。
   final BurnInGuardMode burnInGuardMode;
 
+  /// 屏保是否显示并移动「工作中」；关掉后屏保只有纯黑画面。
+  final bool burnInGuardMove;
+
+  /// 弹跳模式的速度倍率（0.5–2.5）。
+  final double burnInGuardSpeed;
+
   /// Size of chat content relative to the system setting (header and
   /// composer keep theirs). One of [chatTextScales].
   final double chatTextScale;
@@ -104,6 +112,8 @@ class AppSettings {
     bool? hardwareEnterSends,
     bool? burnInGuard,
     BurnInGuardMode? burnInGuardMode,
+    bool? burnInGuardMove,
+    double? burnInGuardSpeed,
     double? chatTextScale,
     bool? foldCompletedTurns,
     bool? visualReplies,
@@ -122,6 +132,8 @@ class AppSettings {
     hardwareEnterSends: hardwareEnterSends ?? this.hardwareEnterSends,
     burnInGuard: burnInGuard ?? this.burnInGuard,
     burnInGuardMode: burnInGuardMode ?? this.burnInGuardMode,
+    burnInGuardMove: burnInGuardMove ?? this.burnInGuardMove,
+    burnInGuardSpeed: burnInGuardSpeed ?? this.burnInGuardSpeed,
     chatTextScale: chatTextScale ?? this.chatTextScale,
     foldCompletedTurns: foldCompletedTurns ?? this.foldCompletedTurns,
     visualReplies: visualReplies ?? this.visualReplies,
@@ -151,6 +163,8 @@ class SettingsController extends Notifier<AppSettings> {
   static const _webPhoneLayoutKey = 'web_phone_layout';
   static const _burnInGuardKey = 'burn_in_guard';
   static const _burnInGuardModeKey = 'burn_in_guard_mode';
+  static const _burnInGuardMoveKey = 'burn_in_guard_move';
+  static const _burnInGuardSpeedKey = 'burn_in_guard_speed';
   static const _chatSuggestionsKey = 'chat_suggestions';
   static const _hardwareEnterKey = 'hardware_enter_sends';
   static const _chatTextScaleKey = 'chat_text_scale';
@@ -206,6 +220,8 @@ class SettingsController extends Notifier<AppSettings> {
         (m) => m.name == prefs.getString(_burnInGuardModeKey),
         orElse: () => BurnInGuardMode.spots,
       ),
+      burnInGuardMove: prefs.getBool(_burnInGuardMoveKey) ?? true,
+      burnInGuardSpeed: (prefs.getDouble(_burnInGuardSpeedKey) ?? 1.0).clamp(0.5, 2.5).toDouble(),
       chatTextScale: _knownScale(prefs.getDouble(_chatTextScaleKey)),
       foldCompletedTurns: prefs.getBool(_foldTurnsKey) ?? true,
       visualReplies: prefs.getBool(_visualRepliesKey) ?? true,
@@ -331,6 +347,18 @@ class SettingsController extends Notifier<AppSettings> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_burnInGuardModeKey, value.name);
     state = state.copyWith(burnInGuardMode: value);
+  }
+
+  Future<void> setBurnInGuardMove(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_burnInGuardMoveKey, value);
+    state = state.copyWith(burnInGuardMove: value);
+  }
+
+  Future<void> setBurnInGuardSpeed(double value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble(_burnInGuardSpeedKey, value.clamp(0.5, 2.5).toDouble());
+    state = state.copyWith(burnInGuardSpeed: value.clamp(0.5, 2.5).toDouble());
   }
 
   Future<void> setHardwareEnterSends(bool value) async {

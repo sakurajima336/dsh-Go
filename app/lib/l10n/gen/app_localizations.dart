@@ -17306,6 +17306,24 @@ abstract class L10n {
   /// **'授予「显示在其他应用上层」后，屏保能盖住其他应用的浮窗；不授予时只在应用内显示'**
   String get hubBurnInGuardOverlayHint;
 
+  /// No description provided for @hubBurnInGuardMove.
+  ///
+  /// In zh, this message translates to:
+  /// **'移动显示'**
+  String get hubBurnInGuardMove;
+
+  /// No description provided for @hubBurnInGuardMoveHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'关掉后屏保只有纯黑画面，不显示「工作中」'**
+  String get hubBurnInGuardMoveHint;
+
+  /// No description provided for @hubBurnInGuardSpeed.
+  ///
+  /// In zh, this message translates to:
+  /// **'弹跳速度'**
+  String get hubBurnInGuardSpeed;
+
   /// No description provided for @iosSaveToFiles.
   ///
   /// In zh, this message translates to:

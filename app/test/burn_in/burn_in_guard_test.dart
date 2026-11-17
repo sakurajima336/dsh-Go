@@ -17,12 +17,12 @@ Future<AppSettings> _loadedSettings(ProviderContainer container) async {
   return settings;
 }
 
-Widget _screen(BurnInGuardMode mode) {
+Widget _screen(BurnInGuardMode mode, {bool move = true, double speed = 1.0}) {
   return MaterialApp(
     locale: const Locale('zh', 'CN'),
     supportedLocales: AppLocale.supported,
     localizationsDelegates: const [L10n.delegate, ...GlobalMaterialLocalizations.delegates],
-    home: BurnInGuardScreen(mode: mode),
+    home: BurnInGuardScreen(mode: mode, move: move, speed: speed),
   );
 }
 
@@ -52,6 +52,24 @@ void main() {
     expect(prefs.getString('burn_in_guard_mode'), 'bounce');
   });
 
+  test('move switch and bounce speed default, persist and clamp', () async {
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+
+    final settings = await _loadedSettings(container);
+    expect(settings.burnInGuardMove, isTrue);
+    expect(settings.burnInGuardSpeed, 1.0);
+
+    await container.read(settingsProvider.notifier).setBurnInGuardMove(false);
+    await container.read(settingsProvider.notifier).setBurnInGuardSpeed(9.0);
+    final changed = container.read(settingsProvider);
+    expect(changed.burnInGuardMove, isFalse);
+    expect(changed.burnInGuardSpeed, 2.5);
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getBool('burn_in_guard_move'), isFalse);
+    expect(prefs.getDouble('burn_in_guard_speed'), 2.5);
+  });
+
   test('stored burn-in guard preferences are loaded back', () async {
     SharedPreferences.setMockInitialValues({'burn_in_guard': false, 'burn_in_guard_mode': 'bounce'});
     final container = ProviderContainer();
@@ -60,6 +78,16 @@ void main() {
     final settings = await _loadedSettings(container);
     expect(settings.burnInGuard, isFalse);
     expect(settings.burnInGuardMode, BurnInGuardMode.bounce);
+  });
+
+  testWidgets('move off shows a plain black screen with no label', (tester) async {
+    await tester.pumpWidget(_screen(BurnInGuardMode.bounce, move: false));
+    await tester.pump();
+    expect(find.text('工作中'), findsNothing);
+    final box = tester.widget<ColoredBox>(
+      find.descendant(of: find.byType(BurnInGuardScreen), matching: find.byType(ColoredBox)),
+    );
+    expect(box.color, Colors.black);
   });
 
   testWidgets('spots mode shows the label and moves it to another slot', (tester) async {

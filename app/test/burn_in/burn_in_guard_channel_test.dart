@@ -14,21 +14,25 @@ void main() {
 
   test('no native side: overlay reports unavailable instead of throwing', () async {
     expect(await BurnInGuardChannel.canDraw(), isFalse);
-    expect(await BurnInGuardChannel.show(mode: 'spots', text: '工作中'), isFalse);
+    expect(await BurnInGuardChannel.show(mode: 'spots', text: '工作中', move: true, speed: 1.0), isFalse);
     await BurnInGuardChannel.hide();
     await BurnInGuardChannel.openPermissionSettings();
   });
 
   test('native side answers are passed through', () async {
-    String? shownMode;
-    String? shownText;
+    Object? shownMode;
+    Object? shownText;
+    Object? shownMove;
+    Object? shownSpeed;
     messenger.setMockMethodCallHandler(channel, (call) async {
       switch (call.method) {
         case 'canDraw':
           return true;
         case 'show':
-          shownMode = call.arguments['mode'] as String?;
-          shownText = call.arguments['text'] as String?;
+          shownMode = call.arguments['mode'];
+          shownText = call.arguments['text'];
+          shownMove = call.arguments['move'];
+          shownSpeed = call.arguments['speed'];
           return true;
         default:
           return null;
@@ -36,8 +40,10 @@ void main() {
     });
 
     expect(await BurnInGuardChannel.canDraw(), isTrue);
-    expect(await BurnInGuardChannel.show(mode: 'bounce', text: '工作中'), isTrue);
+    expect(await BurnInGuardChannel.show(mode: 'bounce', text: '工作中', move: false, speed: 2.0), isTrue);
     expect(shownMode, 'bounce');
     expect(shownText, '工作中');
+    expect(shownMove, isFalse);
+    expect(shownSpeed, 2.0);
   });
 }

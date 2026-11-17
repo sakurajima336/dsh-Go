@@ -7,6 +7,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -164,27 +165,39 @@ class InterfacePage extends ConsumerWidget {
             ),
             if (settings.burnInGuard) ...[
               const _BurnInOverlayTile(),
-              for (final mode in BurnInGuardMode.values)
-                Semantics(
-                  checked: mode == settings.burnInGuardMode,
-                  inMutuallyExclusiveGroup: true,
-                  child: SettingsTile(
-                    key: ValueKey('burn-in-guard-${mode.name}'),
-                    title: switch (mode) {
-                      BurnInGuardMode.spots => l10n.hubBurnInGuardSpots,
-                      BurnInGuardMode.bounce => l10n.hubBurnInGuardBounce,
-                    },
-                    subtitle: switch (mode) {
-                      BurnInGuardMode.spots => l10n.hubBurnInGuardSpotsHint,
-                      BurnInGuardMode.bounce => l10n.hubBurnInGuardBounceHint,
-                    },
-                    trailing: Icon(
-                      mode == settings.burnInGuardMode ? AppIcons.radioOn : AppIcons.radioOff,
-                      size: 24,
-                      color: mode == settings.burnInGuardMode ? Theme.of(context).colorScheme.primary : null,
+              SettingsSwitchTile(
+                title: l10n.hubBurnInGuardMove,
+                subtitle: l10n.hubBurnInGuardMoveHint,
+                value: settings.burnInGuardMove,
+                onChanged: (v) => unawaited(ref.read(settingsProvider.notifier).setBurnInGuardMove(v)),
+              ),
+              if (settings.burnInGuardMove)
+                for (final mode in BurnInGuardMode.values)
+                  Semantics(
+                    checked: mode == settings.burnInGuardMode,
+                    inMutuallyExclusiveGroup: true,
+                    child: SettingsTile(
+                      key: ValueKey('burn-in-guard-${mode.name}'),
+                      title: switch (mode) {
+                        BurnInGuardMode.spots => l10n.hubBurnInGuardSpots,
+                        BurnInGuardMode.bounce => l10n.hubBurnInGuardBounce,
+                      },
+                      subtitle: switch (mode) {
+                        BurnInGuardMode.spots => l10n.hubBurnInGuardSpotsHint,
+                        BurnInGuardMode.bounce => l10n.hubBurnInGuardBounceHint,
+                      },
+                      trailing: Icon(
+                        mode == settings.burnInGuardMode ? AppIcons.radioOn : AppIcons.radioOff,
+                        size: 24,
+                        color: mode == settings.burnInGuardMode ? Theme.of(context).colorScheme.primary : null,
+                      ),
+                      onTap: () => unawaited(ref.read(settingsProvider.notifier).setBurnInGuardMode(mode)),
                     ),
-                    onTap: () => unawaited(ref.read(settingsProvider.notifier).setBurnInGuardMode(mode)),
                   ),
+              if (settings.burnInGuardMove && settings.burnInGuardMode == BurnInGuardMode.bounce)
+                _BurnInSpeedRow(
+                  speed: settings.burnInGuardSpeed,
+                  onChanged: (v) => unawaited(ref.read(settingsProvider.notifier).setBurnInGuardSpeed(v)),
                 ),
             ],
           ],
@@ -389,6 +402,61 @@ class _BurnInOverlayTileState extends State<_BurnInOverlayTile> with WidgetsBind
       title: l10n.hubBurnInGuardOverlay,
       subtitle: l10n.hubBurnInGuardOverlayHint,
       onTap: () => unawaited(BurnInGuardChannel.openPermissionSettings()),
+    );
+  }
+}
+
+/// 弹跳速度滑块行（0.5×–2.5×，0.25 一档），样子对齐设置里的其他滑块行。
+class _BurnInSpeedRow extends StatelessWidget {
+  const _BurnInSpeedRow({required this.speed, required this.onChanged});
+
+  final double speed;
+  final ValueChanged<double> onChanged;
+
+  static double snap(double v) => (v * 4).round() / 4;
+
+  static String label(double v) {
+    final s = v.toStringAsFixed(2);
+    return '${s.replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), '')}×';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final l10n = context.l10n;
+    final v = speed.clamp(0.5, 2.5).toDouble();
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              Expanded(child: Text(l10n.hubBurnInGuardSpeed, style: theme.textTheme.titleMedium)),
+              const SizedBox(width: 12),
+              Text(label(v), style: theme.textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant)),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Slider(
+            value: v,
+            min: 0.5,
+            max: 2.5,
+            padding: EdgeInsets.zero,
+            activeColor: scheme.onSurfaceVariant,
+            inactiveColor: scheme.onSurface.withValues(alpha: 0.1),
+            semanticFormatterCallback: label,
+            onChanged: (raw) {
+              final next = snap(raw);
+              if (next == snap(v)) return;
+              HapticFeedback.selectionClick();
+              onChanged(next);
+            },
+          ),
+        ],
+      ),
     );
   }
 }

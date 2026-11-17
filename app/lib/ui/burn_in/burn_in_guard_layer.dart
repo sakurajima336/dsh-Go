@@ -82,7 +82,12 @@ class _BurnInGuardLayerState extends ConsumerState<BurnInGuardLayer> {
     _activating = true;
     var overlay = false;
     if (defaultTargetPlatform == TargetPlatform.android && await BurnInGuardChannel.canDraw()) {
-      overlay = await BurnInGuardChannel.show(mode: settings.burnInGuardMode.name, text: appL10n.burnInWorking);
+      overlay = await BurnInGuardChannel.show(
+        mode: settings.burnInGuardMode.name,
+        text: appL10n.burnInWorking,
+        move: settings.burnInGuardMove,
+        speed: settings.burnInGuardSpeed,
+      );
     }
     _activating = false;
     if (!mounted) return;
@@ -99,29 +104,38 @@ class _BurnInGuardLayerState extends ConsumerState<BurnInGuardLayer> {
 
   @override
   Widget build(BuildContext context) {
-    final mode = ref.watch(settingsProvider.select((s) => s.burnInGuardMode));
+    final guard = ref.watch(settingsProvider.select((s) => (s.burnInGuardMode, s.burnInGuardMove, s.burnInGuardSpeed)));
     return Listener(
       behavior: HitTestBehavior.translucent,
       onPointerDown: (_) => _noteTouch(),
-      child: _active && !_overlayShown ? BurnInGuardScreen(mode: mode) : const SizedBox.expand(),
+      child: _active && !_overlayShown
+          ? BurnInGuardScreen(mode: guard.$1, move: guard.$2, speed: guard.$3)
+          : const SizedBox.expand(),
     );
   }
 }
 
 /// 全屏纯黑 + 一行会动的「工作中」。单独成 widget，方便测试。
 class BurnInGuardScreen extends StatelessWidget {
-  const BurnInGuardScreen({super.key, required this.mode});
+  const BurnInGuardScreen({super.key, required this.mode, required this.move, required this.speed});
 
   final BurnInGuardMode mode;
 
+  /// False 时只有纯黑画面，不显示文字。
+  final bool move;
+
+  /// 弹跳速度倍率。
+  final double speed;
+
   @override
   Widget build(BuildContext context) {
+    if (!move) return const ColoredBox(color: Colors.black, child: SizedBox.expand());
     final text = L10n.of(context).burnInWorking;
     return ColoredBox(
       color: Colors.black,
       child: switch (mode) {
         BurnInGuardMode.spots => _SpotsText(text: text),
-        BurnInGuardMode.bounce => _BounceText(text: text),
+        BurnInGuardMode.bounce => _BounceText(text: text, speed: speed),
       },
     );
   }
@@ -199,9 +213,10 @@ class _SpotsTextState extends State<_SpotsText> {
 /// 弹跳模式：「工作中」像电视屏保图标一样在屏幕上持续弹跳，
 /// 每撞一次边换一种暗色，任何一处像素都不会长时间亮着。
 class _BounceText extends StatefulWidget {
-  const _BounceText({required this.text});
+  const _BounceText({required this.text, required this.speed});
 
   final String text;
+  final double speed;
 
   @override
   State<_BounceText> createState() => _BounceTextState();
@@ -228,6 +243,7 @@ class _BounceTextState extends State<_BounceText> with SingleTickerProviderState
   @override
   void initState() {
     super.initState();
+    _vel = Offset(110 * widget.speed, 84 * widget.speed);
     if (_random.nextBool()) _vel = Offset(-_vel.dx, _vel.dy);
     if (_random.nextBool()) _vel = Offset(_vel.dx, -_vel.dy);
     _ticker = createTicker(_tick)..start();

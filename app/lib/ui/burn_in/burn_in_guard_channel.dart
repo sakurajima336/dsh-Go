@@ -26,9 +26,15 @@ abstract final class BurnInGuardChannel {
   }
 
   /// True 表示悬浮窗真的升起来了（厂商系统可能有权限也拒绝）。
-  static Future<bool> show({required String mode, required String text}) async {
+  static Future<bool> show({
+    required String mode,
+    required String text,
+    required bool move,
+    required double speed,
+  }) async {
     try {
-      return await _channel.invokeMethod<bool>('show', {'mode': mode, 'text': text}) ?? false;
+      return await _channel.invokeMethod<bool>('show', {'mode': mode, 'text': text, 'move': move, 'speed': speed}) ??
+          false;
     } on MissingPluginException {
       return false;
     } on PlatformException {
