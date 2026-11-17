@@ -7,7 +7,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd -P)"
 DEVICE=""
 PAIRING=""
 TEAM=""
-APP_BUNDLE="io.github.ccch1mneyyy.dshgo"
+APP_BUNDLE="io.github.sakurajima336.dshgo"
 usage() {
   printf 'Usage: %s --device UDID [--pairing RP_PAIRING.plist] [--team TEAM_ID] [--app-bundle-id ID]\n' "$0"
 }

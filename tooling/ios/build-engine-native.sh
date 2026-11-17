@@ -55,7 +55,7 @@ cat >"$FRAMEWORK/Info.plist" <<PLIST
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
   <key>CFBundleExecutable</key><string>DshNodeHost</string>
-  <key>CFBundleIdentifier</key><string>io.github.ccch1mneyyy.dshgo.nodehost</string>
+  <key>CFBundleIdentifier</key><string>io.github.sakurajima336.dshgo.nodehost</string>
   <key>CFBundleName</key><string>DshNodeHost</string>
   <key>CFBundlePackageType</key><string>FMWK</string>
   <key>CFBundleShortVersionString</key><string>1.0</string>
@@ -85,8 +85,8 @@ for name in target["sources"] + target["conditions"][0][2]["sources"]:
 
 for name in DshFlock DshRequireBuiltin; do
   case "$name" in
-    DshFlock) bundle_id=io.github.ccch1mneyyy.dshgo.flock ;;
-    DshRequireBuiltin) bundle_id=io.github.ccch1mneyyy.dshgo.requirebuiltin ;;
+    DshFlock) bundle_id=io.github.sakurajima336.dshgo.flock ;;
+    DshRequireBuiltin) bundle_id=io.github.sakurajima336.dshgo.requirebuiltin ;;
   esac
   cat >"$OUT/$name.framework/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
