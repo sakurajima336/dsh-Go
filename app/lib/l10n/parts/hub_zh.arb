@@ -336,5 +336,12 @@
   "hubQuickPanelSwipe": "左滑打开",
   "hubQuickPanelSwipeHint": "在对话里从右向左滑。代码块、表格这些能横向滚动的内容不受影响。",
   "hubQuickPanelItems": "显示的入口",
-  "hubQuickPanelItemsNone": "没有选择，左滑不会打开"
+  "hubQuickPanelItemsNone": "没有选择，左滑不会打开",
+  "hubBurnInGuard": "防烧屏",
+  "hubBurnInGuardHint": "AI 长时间输出、且你没有触碰屏幕时，黑屏只留一行「工作中」移动显示，避免烧屏；触碰任意处退出",
+  "hubBurnInGuardSpots": "随机位置",
+  "hubBurnInGuardSpotsHint": "「工作中」在屏幕上、中、下之间随机换位置停留",
+  "hubBurnInGuardBounce": "弹跳",
+  "hubBurnInGuardBounceHint": "「工作中」像电视屏保图标一样在屏幕上持续弹跳",
+  "burnInWorking": "工作中"
 }

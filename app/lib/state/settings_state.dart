@@ -23,6 +23,8 @@ class AppSettings {
     this.webPhoneLayout = true,
     this.chatSuggestions = true,
     this.hardwareEnterSends = false,
+    this.burnInGuard = true,
+    this.burnInGuardMode = BurnInGuardMode.spots,
     this.chatTextScale = 1.0,
     this.foldCompletedTurns = true,
     this.visualReplies = true,
@@ -59,6 +61,12 @@ class AppSettings {
   /// Hardware Enter sends; Shift+Enter and the software keyboard still insert newlines.
   final bool hardwareEnterSends;
 
+  /// 长任务输出且长时间无触碰时，用纯黑屏保盖住界面防烧屏。
+  final bool burnInGuard;
+
+  /// 屏保里「工作中」的移动方式。
+  final BurnInGuardMode burnInGuardMode;
+
   /// Size of chat content relative to the system setting (header and
   /// composer keep theirs). One of [chatTextScales].
   final double chatTextScale;
@@ -94,6 +102,8 @@ class AppSettings {
     bool? webPhoneLayout,
     bool? chatSuggestions,
     bool? hardwareEnterSends,
+    bool? burnInGuard,
+    BurnInGuardMode? burnInGuardMode,
     double? chatTextScale,
     bool? foldCompletedTurns,
     bool? visualReplies,
@@ -110,6 +120,8 @@ class AppSettings {
     webPhoneLayout: webPhoneLayout ?? this.webPhoneLayout,
     chatSuggestions: chatSuggestions ?? this.chatSuggestions,
     hardwareEnterSends: hardwareEnterSends ?? this.hardwareEnterSends,
+    burnInGuard: burnInGuard ?? this.burnInGuard,
+    burnInGuardMode: burnInGuardMode ?? this.burnInGuardMode,
     chatTextScale: chatTextScale ?? this.chatTextScale,
     foldCompletedTurns: foldCompletedTurns ?? this.foldCompletedTurns,
     visualReplies: visualReplies ?? this.visualReplies,
@@ -117,6 +129,9 @@ class AppSettings {
     loaded: loaded ?? this.loaded,
   );
 }
+
+/// 防烧屏屏保里「工作中」的移动方式：随机位置，或满屏弹跳。
+enum BurnInGuardMode { spots, bounce }
 
 /// Chat text sizes offered in settings: (scale, label).
 List<(double, String)> get chatTextScales => [
@@ -134,6 +149,8 @@ class SettingsController extends Notifier<AppSettings> {
   static const _automaticDiagnosticsKey = 'automatic_diagnostics';
   static const _phoneStorageKey = 'phone_storage';
   static const _webPhoneLayoutKey = 'web_phone_layout';
+  static const _burnInGuardKey = 'burn_in_guard';
+  static const _burnInGuardModeKey = 'burn_in_guard_mode';
   static const _chatSuggestionsKey = 'chat_suggestions';
   static const _hardwareEnterKey = 'hardware_enter_sends';
   static const _chatTextScaleKey = 'chat_text_scale';
@@ -184,6 +201,11 @@ class SettingsController extends Notifier<AppSettings> {
       webPhoneLayout: prefs.getBool(_webPhoneLayoutKey) ?? true,
       chatSuggestions: prefs.getBool(_chatSuggestionsKey) ?? true,
       hardwareEnterSends: prefs.getBool(_hardwareEnterKey) ?? false,
+      burnInGuard: prefs.getBool(_burnInGuardKey) ?? true,
+      burnInGuardMode: BurnInGuardMode.values.firstWhere(
+        (m) => m.name == prefs.getString(_burnInGuardModeKey),
+        orElse: () => BurnInGuardMode.spots,
+      ),
       chatTextScale: _knownScale(prefs.getDouble(_chatTextScaleKey)),
       foldCompletedTurns: prefs.getBool(_foldTurnsKey) ?? true,
       visualReplies: prefs.getBool(_visualRepliesKey) ?? true,
@@ -297,6 +319,18 @@ class SettingsController extends Notifier<AppSettings> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_webPhoneLayoutKey, value);
     state = state.copyWith(webPhoneLayout: value);
+  }
+
+  Future<void> setBurnInGuard(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_burnInGuardKey, value);
+    state = state.copyWith(burnInGuard: value);
+  }
+
+  Future<void> setBurnInGuardMode(BurnInGuardMode value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_burnInGuardModeKey, value.name);
+    state = state.copyWith(burnInGuardMode: value);
   }
 
   Future<void> setHardwareEnterSends(bool value) async {

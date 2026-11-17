@@ -956,6 +956,12 @@ abstract final class Spots {
     title: (l) => l.hubQuickPanel,
     keywords: (l) => l.searchKwQuickPanel,
   );
+  static final burnInGuard = SettingSpot(
+    'burn-in-guard',
+    page: SettingsPageId.interface,
+    title: (l) => l.hubBurnInGuard,
+    keywords: (l) => l.searchKwBurnInGuard,
+  );
   static final tableTint = SettingSpot(
     'table-tint',
     page: SettingsPageId.interface,
@@ -1263,6 +1269,7 @@ final _rows = <SettingSpot>[
   Spots.workshop,
   Spots.uiMode,
   Spots.hardwareEnterSends,
+  Spots.burnInGuard,
   Spots.chatSuggestions,
   Spots.quickPanel,
   Spots.tableTint,

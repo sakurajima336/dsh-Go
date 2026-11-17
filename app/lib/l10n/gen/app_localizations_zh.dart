@@ -9324,6 +9324,27 @@ class L10nZh extends L10n {
   String get hubQuickPanelItemsNone => '没有选择，左滑不会打开';
 
   @override
+  String get hubBurnInGuard => '防烧屏';
+
+  @override
+  String get hubBurnInGuardHint => 'AI 长时间输出、且你没有触碰屏幕时，黑屏只留一行「工作中」移动显示，避免烧屏；触碰任意处退出';
+
+  @override
+  String get hubBurnInGuardSpots => '随机位置';
+
+  @override
+  String get hubBurnInGuardSpotsHint => '「工作中」在屏幕上、中、下之间随机换位置停留';
+
+  @override
+  String get hubBurnInGuardBounce => '弹跳';
+
+  @override
+  String get hubBurnInGuardBounceHint => '「工作中」像电视屏保图标一样在屏幕上持续弹跳';
+
+  @override
+  String get burnInWorking => '工作中';
+
+  @override
   String get iosSaveToFiles => '存到「文件」';
 
   @override
@@ -17411,6 +17432,9 @@ class L10nZh extends L10n {
 
   @override
   String get searchKwQuickPanel => '左滑,快捷入口,手势,滑动,目录,自定义目录,快捷,常用入口';
+
+  @override
+  String get searchKwBurnInGuard => '防烧屏,烧屏,屏保,黑屏,工作中,屏幕保护,待机';
 
   @override
   String get selfUpdateTransport => '安装路线';

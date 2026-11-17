@@ -17252,6 +17252,48 @@ abstract class L10n {
   /// **'没有选择，左滑不会打开'**
   String get hubQuickPanelItemsNone;
 
+  /// No description provided for @hubBurnInGuard.
+  ///
+  /// In zh, this message translates to:
+  /// **'防烧屏'**
+  String get hubBurnInGuard;
+
+  /// No description provided for @hubBurnInGuardHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'AI 长时间输出、且你没有触碰屏幕时，黑屏只留一行「工作中」移动显示，避免烧屏；触碰任意处退出'**
+  String get hubBurnInGuardHint;
+
+  /// No description provided for @hubBurnInGuardSpots.
+  ///
+  /// In zh, this message translates to:
+  /// **'随机位置'**
+  String get hubBurnInGuardSpots;
+
+  /// No description provided for @hubBurnInGuardSpotsHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'「工作中」在屏幕上、中、下之间随机换位置停留'**
+  String get hubBurnInGuardSpotsHint;
+
+  /// No description provided for @hubBurnInGuardBounce.
+  ///
+  /// In zh, this message translates to:
+  /// **'弹跳'**
+  String get hubBurnInGuardBounce;
+
+  /// No description provided for @hubBurnInGuardBounceHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'「工作中」像电视屏保图标一样在屏幕上持续弹跳'**
+  String get hubBurnInGuardBounceHint;
+
+  /// No description provided for @burnInWorking.
+  ///
+  /// In zh, this message translates to:
+  /// **'工作中'**
+  String get burnInWorking;
+
   /// No description provided for @iosSaveToFiles.
   ///
   /// In zh, this message translates to:
@@ -32011,6 +32053,12 @@ abstract class L10n {
   /// In zh, this message translates to:
   /// **'左滑,快捷入口,手势,滑动,目录,自定义目录,快捷,常用入口'**
   String get searchKwQuickPanel;
+
+  /// No description provided for @searchKwBurnInGuard.
+  ///
+  /// In zh, this message translates to:
+  /// **'防烧屏,烧屏,屏保,黑屏,工作中,屏幕保护,待机'**
+  String get searchKwBurnInGuard;
 
   /// No description provided for @selfUpdateTransport.
   ///

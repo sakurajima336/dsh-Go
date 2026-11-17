@@ -181,5 +181,12 @@
   "hubQuickPanelSwipe": "Open with a left swipe",
   "hubQuickPanelSwipeHint": "Swipe right to left over the chat. Code blocks, tables and other content that scrolls sideways aren’t affected.",
   "hubQuickPanelItems": "What it lists",
-  "hubQuickPanelItemsNone": "Nothing chosen: a left swipe won't open it"
+  "hubQuickPanelItemsNone": "Nothing chosen: a left swipe won't open it",
+  "hubBurnInGuard": "Burn-in guard",
+  "hubBurnInGuardHint": "While AI output runs long and you don't touch the screen, a black screen shows one moving “Working” label to prevent burn-in; touch anywhere to exit",
+  "hubBurnInGuardSpots": "Random positions",
+  "hubBurnInGuardSpotsHint": "“Working” dwells at random spots between the top, middle and bottom of the screen",
+  "hubBurnInGuardBounce": "Bouncing",
+  "hubBurnInGuardBounceHint": "“Working” keeps bouncing around the screen like a TV screensaver logo",
+  "burnInWorking": "Working"
 }

@@ -22,6 +22,7 @@ import 'ui/shell/root_gate.dart';
 import 'ui/theme/theme.dart';
 import 'ui_config/ui_config_state.dart';
 import 'usage/usage_stats.dart';
+import 'ui/burn_in/burn_in_guard_layer.dart';
 
 class DshApp extends ConsumerStatefulWidget {
   const DshApp({super.key, this.home});
@@ -215,6 +216,7 @@ class _DshAppState extends ConsumerState<DshApp> with WidgetsBindingObserver {
                         : MirroredSideInsets(child: child!),
                   ),
                   const LaunchLayer(),
+                  const BurnInGuardLayer(),
                 ],
               ),
             ),

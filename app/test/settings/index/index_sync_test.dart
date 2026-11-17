@@ -82,6 +82,7 @@ const _sections = {
   'ui-mode',
   'quick-panel',
   'table-tint',
+  'burn-in-guard',
   'web-app',
 };
 

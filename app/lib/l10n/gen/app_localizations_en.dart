@@ -9846,6 +9846,29 @@ class L10nEn extends L10n {
   String get hubQuickPanelItemsNone => 'Nothing chosen: a left swipe won\'t open it';
 
   @override
+  String get hubBurnInGuard => 'Burn-in guard';
+
+  @override
+  String get hubBurnInGuardHint =>
+      'While AI output runs long and you don\'t touch the screen, a black screen shows one moving “Working” label to prevent burn-in; touch anywhere to exit';
+
+  @override
+  String get hubBurnInGuardSpots => 'Random positions';
+
+  @override
+  String get hubBurnInGuardSpotsHint =>
+      '“Working” dwells at random spots between the top, middle and bottom of the screen';
+
+  @override
+  String get hubBurnInGuardBounce => 'Bouncing';
+
+  @override
+  String get hubBurnInGuardBounceHint => '“Working” keeps bouncing around the screen like a TV screensaver logo';
+
+  @override
+  String get burnInWorking => 'Working';
+
+  @override
   String get iosSaveToFiles => 'Save to Files';
 
   @override
@@ -18321,6 +18344,9 @@ class L10nEn extends L10n {
 
   @override
   String get searchKwQuickPanel => 'swipe,left swipe,shortcuts,gesture,quick panel,quick access';
+
+  @override
+  String get searchKwBurnInGuard => 'burn-in,screen saver,black screen,amoled,idle,working';
 
   @override
   String get selfUpdateTransport => 'Installation route';

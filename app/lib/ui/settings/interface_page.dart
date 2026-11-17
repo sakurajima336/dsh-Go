@@ -151,6 +151,41 @@ class InterfacePage extends ConsumerWidget {
           ],
         ),
         SettingsSection(
+          title: l10n.hubBurnInGuard,
+          spot: Spots.burnInGuard,
+          children: [
+            SettingsSwitchTile(
+              title: l10n.hubBurnInGuard,
+              subtitle: l10n.hubBurnInGuardHint,
+              value: settings.burnInGuard,
+              onChanged: (v) => unawaited(ref.read(settingsProvider.notifier).setBurnInGuard(v)),
+            ),
+            if (settings.burnInGuard)
+              for (final mode in BurnInGuardMode.values)
+                Semantics(
+                  checked: mode == settings.burnInGuardMode,
+                  inMutuallyExclusiveGroup: true,
+                  child: SettingsTile(
+                    key: ValueKey('burn-in-guard-${mode.name}'),
+                    title: switch (mode) {
+                      BurnInGuardMode.spots => l10n.hubBurnInGuardSpots,
+                      BurnInGuardMode.bounce => l10n.hubBurnInGuardBounce,
+                    },
+                    subtitle: switch (mode) {
+                      BurnInGuardMode.spots => l10n.hubBurnInGuardSpotsHint,
+                      BurnInGuardMode.bounce => l10n.hubBurnInGuardBounceHint,
+                    },
+                    trailing: Icon(
+                      mode == settings.burnInGuardMode ? AppIcons.radioOn : AppIcons.radioOff,
+                      size: 24,
+                      color: mode == settings.burnInGuardMode ? Theme.of(context).colorScheme.primary : null,
+                    ),
+                    onTap: () => unawaited(ref.read(settingsProvider.notifier).setBurnInGuardMode(mode)),
+                  ),
+                ),
+          ],
+        ),
+        SettingsSection(
           title: l10n.hubTableTint,
           spot: Spots.tableTint,
           children: [

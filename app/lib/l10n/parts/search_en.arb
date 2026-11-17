@@ -122,5 +122,6 @@
   "searchKwWebBusySend": "send,queue,while AI works",
   "searchKwPluginsMarket": "plugin market,install plugins,marketplace",
   "searchKwUsageStats": "statistics,stats,usage data,analytics,telemetry,anonymous,privacy,data",
-  "searchKwQuickPanel": "swipe,left swipe,shortcuts,gesture,quick panel,quick access"
+  "searchKwQuickPanel": "swipe,left swipe,shortcuts,gesture,quick panel,quick access",
+  "searchKwBurnInGuard": "burn-in,screen saver,black screen,amoled,idle,working"
 }
