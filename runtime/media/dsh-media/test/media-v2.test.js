@@ -7,6 +7,7 @@ import { syncBuiltinESMExports } from 'node:module';
 import { spawnSync, spawn } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { basename, dirname, join, sep } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { CATALOG, HARD_LIMITS, Config, runtimeSnapshot, catalogModel } from '../src/config.js';
 import { createMediaClient, createDescriptor } from '../src/adapters.js';
 import { createHttpTransport } from '../src/http.js';
@@ -74,6 +75,14 @@ async function fixture(t, profile, behavior = {}) {
   t.after(async () => { server.closeAllConnections(); await new Promise(resolve => server.close(resolve)); await rm(directory, { recursive: true, force: true }); });
   return { directory, workspace, wires, controller, context, origin, setState(value) { state = value; } };
 }
+test('default DNS failure releases the unsent hold for another admission', t => {
+  const child = spawnSync(process.execPath, [fileURLToPath(new URL('./fixtures/presend-dns-child.mjs', import.meta.url))], {
+    encoding: 'utf8', timeout: 30_000,
+  });
+  if (child.stdout) t.diagnostic(child.stdout.trim());
+  assert.ifError(child.error);
+  assert.equal(child.status, 0, child.stderr);
+});
 test('image stage partial write failure preserves storage classification and submitted hold', async t => {
   const f = await fixture(t, 'openai-gpt-image'), req = request('openai-gpt-image');
   f.context.admission = await admitGeneration(req, f.context);
@@ -346,6 +355,18 @@ test('settled-but-unpublished video recovers after process-local state loss with
   const completed = await recoverAdmission(original.rid, f.context);
   assert.equal(completed.completed.meta.items[0].path, result.meta.items[0].path);
   await assert.rejects(recoverAdmission(original.rid, { ...f.context, sessionId: 'foreign' }), { code: 'permission' });
+});
+test('completed video recovery rejects a missing original without changing its index', async t => {
+  const f = await fixture(t, 'ark-video'), req = request('ark-video');
+  f.context.admission = await admitGeneration(req, f.context);
+  const result = await generateMedia(req, f.context);
+  const indexPath = join(f.context.hostStateDir, 'works', f.context.admission.outputDate, result.meta.rid + '.json');
+  const index = await readFile(indexPath), original = await readFile(result.meta.items[0].path);
+  const movedPath = result.meta.items[0].path + '.moved';
+  await rename(result.meta.items[0].path, movedPath);
+  await assert.rejects(recoverAdmission(result.meta.rid, f.context), { code: 'storage' });
+  assert.deepEqual(await readFile(indexPath), index);
+  assert.deepEqual(await readFile(movedPath), original);
 });
 test('submission_unknown without a task id never becomes a new create on recovery', async t => {
   const f = await fixture(t, 'ark-video'), admission = await admitGeneration(request('ark-video'), f.context); await admission.begin();

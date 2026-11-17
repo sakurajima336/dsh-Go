@@ -11,6 +11,7 @@ import 'package:flutter/foundation.dart' show ValueListenable, listEquals;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../l10n/l10n.dart';
 import '../../speech/read_aloud.dart';
@@ -195,7 +196,37 @@ class _TavernChatPageState extends ConsumerState<TavernChatPage> {
     pages: ref.read(tavernScriptPagesProvider),
     avatar: (id) async => tavernImageDataUrl((await _tavern.character(id))?.avatarPath),
     interact: _interact,
-  );
+  )..liveButtons.addListener(_buttonsChanged);
+
+  void _buttonsChanged() {
+    if (mounted) setState(() {});
+  }
+
+  /// Whether this page has looked at the card for MVU.
+  bool _mvuAsked = false;
+
+  /// MVU being turned on for this chat; a reply starts after it, so its
+  /// variables are counted from the first.
+  Future<void>? _mvuOn;
+
+  Stream<TavernEvent> _afterMvu(Stream<TavernEvent> Function() start) {
+    final on = _mvuOn;
+    return on == null ? start() : Stream.fromFuture(on.catchError((_) {})).asyncExpand((_) => start());
+  }
+
+  /// Turns the engine's MVU on for this chat, once: the card's [initvar]
+  /// read in, and its replies' variable updates kept from then on.
+  Future<void> _turnOnMvu() async {
+    final prefs = await SharedPreferences.getInstance();
+    final key = '$tavernMvuOnKey${widget.chatId}';
+    if (prefs.getBool(key) ?? false) return;
+    final reply = await _canvasCalls.handle({
+      'id': 0,
+      'method': 'setMvuEnabled',
+      'params': {'enabled': true},
+    });
+    if (reply['ok'] == true) await prefs.setBool(key, true);
+  }
 
   /// A card script's request to the person, shown here: a dialog, a notice,
   /// or words put in the composer (/setinput).
@@ -909,7 +940,7 @@ class _TavernChatPageState extends ConsumerState<TavernChatPage> {
       _runGroup(() => _tavern.sendGroup(widget.chatId, text), draft: text);
       return;
     }
-    _run(() => _tavern.send(widget.chatId, text), draft: text);
+    _run(() => _afterMvu(() => _tavern.send(widget.chatId, text)), draft: text);
   }
 
   /// /continue, /regen, /imp: as the message menu and 帮我写 do them, on the
@@ -1031,7 +1062,7 @@ class _TavernChatPageState extends ConsumerState<TavernChatPage> {
       _runGroup(() => _tavern.sendGroup(widget.chatId, text), draft: text);
       return;
     }
-    _run(() => _tavern.send(widget.chatId, text), draft: text);
+    _run(() => _afterMvu(() => _tavern.send(widget.chatId, text)), draft: text);
   }
 
   /// Long-press: the quick reply goes into the box to change first.
@@ -1523,14 +1554,25 @@ class _TavernChatPageState extends ConsumerState<TavernChatPage> {
     _canvasNames = names;
     _canvasCharacter = _groupChat ? null : characterId;
     if (canvas) _feedCanvas();
+    // A card that uses MVU: its variables kept by the engine in this chat,
+    // whichever way the story is shown.
+    if (!_mvuAsked && !_groupChat && characterId != null) {
+      final card = ref.watch(tavernCardDataProvider(characterId));
+      if (card.hasValue || card.hasError) {
+        _mvuAsked = true;
+        if (tavernUsesMvu(card.value)) _mvuOn = _turnOnMvu();
+      }
+    }
     // The buttons the card's own scripts show: only where those scripts run
     // (the canvas, scripts on, one character).
     final scriptCharacter = _canvasCharacter;
+    // A script that changed its buttons (replaceScriptButtons…) shows those.
+    final live = _calls?.liveButtons.value ?? const <String, List<String>>{};
     final scriptButtons =
         canvas && scriptCharacter != null && !ref.watch(tavernSettingsProvider.select((s) => s.islandNoScripts))
         ? [
             for (final s in ref.watch(tavernCardScriptsProvider(scriptCharacter)).value ?? const <TavernCardScript>[])
-              for (final b in s.buttons) (s.id, b),
+              for (final b in live[s.id] ?? s.buttons) (s.id, b),
           ]
         : const <(String, String)>[];
     // The card's own scripts, where they wait on 整页画布 being on (off, and
@@ -2559,7 +2601,14 @@ class _Shown extends ConsumerWidget {
             TavernTextPart(:final markdown) => text(markdown),
             TavernIslandPart(:final html) => Padding(
               padding: const EdgeInsets.symmetric(vertical: 6),
-              child: island(html),
+              child: TavernIslandMessage(
+                chatId: chatId,
+                nodeId: message.nodeId,
+                text: message.text,
+                name: message.speaker,
+                user: message.role == TavernRole.user,
+                child: island(html),
+              ),
             ),
             TavernComponentPart(:final component) => Padding(
               padding: const EdgeInsets.symmetric(vertical: 6),
