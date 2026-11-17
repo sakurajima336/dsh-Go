@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,10 +10,12 @@ import '../../l10n/l10n.dart';
 import '../../state/notify_state.dart';
 import '../../state/sessions_state.dart';
 import '../../state/settings_state.dart';
+import 'burn_in_guard_channel.dart';
 
 /// 防烧屏屏保：有会话正在输出、且用户一段时间没有触碰屏幕时，用纯黑盖住
 /// 整个界面，只留一行「工作中」在屏幕上移动，避免静态画面长时间停留烧屏。
-/// 任意一处触碰立即退出；任务结束也会自动退出。
+/// Android 上优先升起系统悬浮窗（能盖住别的应用的浮窗），没有悬浮窗权限
+/// 时回退到应用内图层。任意一处触碰立即退出；任务结束也会自动退出。
 class BurnInGuardLayer extends ConsumerStatefulWidget {
   const BurnInGuardLayer({super.key});
 
@@ -27,26 +30,36 @@ class _BurnInGuardLayerState extends ConsumerState<BurnInGuardLayer> {
   DateTime _lastTouch = DateTime.now();
   Timer? _ticker;
   bool _active = false;
+  bool _overlayShown = false;
+  bool _activating = false;
 
   @override
   void initState() {
     super.initState();
-    _ticker = Timer.periodic(const Duration(seconds: 1), (_) => _evaluate());
+    BurnInGuardChannel.ensureTouchHandler(_noteTouch);
+    _ticker = Timer.periodic(const Duration(seconds: 1), (_) => unawaited(_evaluate()));
   }
 
   @override
   void dispose() {
     _ticker?.cancel();
+    if (_overlayShown) unawaited(BurnInGuardChannel.hide());
     super.dispose();
   }
 
   void _noteTouch() {
+    if (!mounted) return;
     _lastTouch = DateTime.now();
-    if (_active) setState(() => _active = false);
+    if (_active) {
+      setState(() {
+        _active = false;
+        _overlayShown = false;
+      });
+    }
   }
 
-  void _evaluate() {
-    if (!mounted) return;
+  Future<void> _evaluate() async {
+    if (!mounted || _activating) return;
     final settings = ref.read(settingsProvider);
     final sessions = ref.read(sessionsProvider).value;
     final should =
@@ -55,7 +68,33 @@ class _BurnInGuardLayerState extends ConsumerState<BurnInGuardLayer> {
         ref.read(appForegroundProvider) &&
         (sessions?.any((s) => s.running) ?? false) &&
         DateTime.now().difference(_lastTouch) >= idleAfter;
-    if (should != _active) setState(() => _active = should);
+    if (should == _active) return;
+    if (!should) {
+      if (_overlayShown) await BurnInGuardChannel.hide();
+      if (mounted) {
+        setState(() {
+          _active = false;
+          _overlayShown = false;
+        });
+      }
+      return;
+    }
+    _activating = true;
+    var overlay = false;
+    if (defaultTargetPlatform == TargetPlatform.android && await BurnInGuardChannel.canDraw()) {
+      overlay = await BurnInGuardChannel.show(mode: settings.burnInGuardMode.name, text: appL10n.burnInWorking);
+    }
+    _activating = false;
+    if (!mounted) return;
+    // 等待通道往返期间用户又碰了屏幕：刚升起的悬浮窗也立刻收掉。
+    if (DateTime.now().difference(_lastTouch) < idleAfter) {
+      if (overlay) await BurnInGuardChannel.hide();
+      return;
+    }
+    setState(() {
+      _active = true;
+      _overlayShown = overlay;
+    });
   }
 
   @override
@@ -64,7 +103,7 @@ class _BurnInGuardLayerState extends ConsumerState<BurnInGuardLayer> {
     return Listener(
       behavior: HitTestBehavior.translucent,
       onPointerDown: (_) => _noteTouch(),
-      child: _active ? BurnInGuardScreen(mode: mode) : const SizedBox.expand(),
+      child: _active && !_overlayShown ? BurnInGuardScreen(mode: mode) : const SizedBox.expand(),
     );
   }
 }

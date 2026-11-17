@@ -6,6 +6,7 @@
 
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -14,6 +15,7 @@ import '../../state/app_mode_state.dart';
 import '../../state/engine_settings_state.dart';
 import '../../state/quick_panel_state.dart';
 import '../../state/settings_state.dart';
+import '../burn_in/burn_in_guard_channel.dart';
 import '../../state/table_tint_state.dart';
 import '../../state/ui_mode_state.dart';
 import '../engine_settings/namespace_copy.dart';
@@ -160,7 +162,8 @@ class InterfacePage extends ConsumerWidget {
               value: settings.burnInGuard,
               onChanged: (v) => unawaited(ref.read(settingsProvider.notifier).setBurnInGuard(v)),
             ),
-            if (settings.burnInGuard)
+            if (settings.burnInGuard) ...[
+              const _BurnInOverlayTile(),
               for (final mode in BurnInGuardMode.values)
                 Semantics(
                   checked: mode == settings.burnInGuardMode,
@@ -183,6 +186,7 @@ class InterfacePage extends ConsumerWidget {
                     onTap: () => unawaited(ref.read(settingsProvider.notifier).setBurnInGuardMode(mode)),
                   ),
                 ),
+            ],
           ],
         ),
         SettingsSection(
@@ -337,4 +341,54 @@ class _TableTintPainter extends CustomPainter {
       old.line != line ||
       old.border != border ||
       old.borderWidth != borderWidth;
+}
+
+/// 悬浮窗权限行：Android 上没授予「显示在其他应用上层」时才出现，
+/// 点了去系统设置页授予；从设置页回来（resumed）会重新检查。
+class _BurnInOverlayTile extends StatefulWidget {
+  const _BurnInOverlayTile();
+
+  @override
+  State<_BurnInOverlayTile> createState() => _BurnInOverlayTileState();
+}
+
+class _BurnInOverlayTileState extends State<_BurnInOverlayTile> with WidgetsBindingObserver {
+  // 先按已授予处理，查清之前不闪这一行。
+  bool _granted = true;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    unawaited(_check());
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) unawaited(_check());
+  }
+
+  Future<void> _check() async {
+    final granted = await BurnInGuardChannel.canDraw();
+    if (mounted && granted != _granted) setState(() => _granted = granted);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (defaultTargetPlatform != TargetPlatform.android || _granted) {
+      return const SizedBox.shrink();
+    }
+    final l10n = context.l10n;
+    return SettingsTile(
+      title: l10n.hubBurnInGuardOverlay,
+      subtitle: l10n.hubBurnInGuardOverlayHint,
+      onTap: () => unawaited(BurnInGuardChannel.openPermissionSettings()),
+    );
+  }
 }

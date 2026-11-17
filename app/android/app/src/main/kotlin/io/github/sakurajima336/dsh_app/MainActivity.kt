@@ -67,6 +67,7 @@ class MainActivity : FlutterActivity() {
             engine.plugins.add(io.github.sakurajima336.dsh_app.companion.CompanionVoicePlugin())
             engine.plugins.add(io.github.sakurajima336.dsh_app.speech.SpeechPlugin())
             engine.plugins.add(io.github.sakurajima336.dsh_app.companion.CompanionWidgetPlugin())
+            engine.plugins.add(io.github.sakurajima336.dsh_app.burnin.BurnInGuardPlugin())
             engine.dartExecutor.executeDartEntrypoint(DartExecutor.DartEntrypoint.createDefault())
             cache.put(ENGINE_ID, engine)
         }

@@ -17294,6 +17294,18 @@ abstract class L10n {
   /// **'工作中'**
   String get burnInWorking;
 
+  /// No description provided for @hubBurnInGuardOverlay.
+  ///
+  /// In zh, this message translates to:
+  /// **'悬浮窗权限'**
+  String get hubBurnInGuardOverlay;
+
+  /// No description provided for @hubBurnInGuardOverlayHint.
+  ///
+  /// In zh, this message translates to:
+  /// **'授予「显示在其他应用上层」后，屏保能盖住其他应用的浮窗；不授予时只在应用内显示'**
+  String get hubBurnInGuardOverlayHint;
+
   /// No description provided for @iosSaveToFiles.
   ///
   /// In zh, this message translates to:

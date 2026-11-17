@@ -2867,6 +2867,8 @@
   "hubBurnInGuardBounce": "Bouncing",
   "hubBurnInGuardBounceHint": "“Working” keeps bouncing around the screen like a TV screensaver logo",
   "burnInWorking": "Working",
+  "hubBurnInGuardOverlay": "Overlay permission",
+  "hubBurnInGuardOverlayHint": "Grant “Display over other apps” so the guard can also cover other apps' floating windows; without it, the guard only shows inside the app",
   "iosSaveToFiles": "Save to Files",
   "iosFilesFolderHint": "DSH Go folder in the Files app",
   "iosSavingToFiles": "Saving to Files…",

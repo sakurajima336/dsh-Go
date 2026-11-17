@@ -9869,6 +9869,13 @@ class L10nEn extends L10n {
   String get burnInWorking => 'Working';
 
   @override
+  String get hubBurnInGuardOverlay => 'Overlay permission';
+
+  @override
+  String get hubBurnInGuardOverlayHint =>
+      'Grant “Display over other apps” so the guard can also cover other apps\' floating windows; without it, the guard only shows inside the app';
+
+  @override
   String get iosSaveToFiles => 'Save to Files';
 
   @override

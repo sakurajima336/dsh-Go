@@ -188,5 +188,7 @@
   "hubBurnInGuardSpotsHint": "“Working” dwells at random spots between the top, middle and bottom of the screen",
   "hubBurnInGuardBounce": "Bouncing",
   "hubBurnInGuardBounceHint": "“Working” keeps bouncing around the screen like a TV screensaver logo",
-  "burnInWorking": "Working"
+  "burnInWorking": "Working",
+  "hubBurnInGuardOverlay": "Overlay permission",
+  "hubBurnInGuardOverlayHint": "Grant “Display over other apps” so the guard can also cover other apps' floating windows; without it, the guard only shows inside the app"
 }
