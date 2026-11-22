@@ -866,10 +866,19 @@ def dsh_drop_reason(rel, abi, prune_dev):
     if "node-pty/third_party/conpty" in rel:
         return "foreign-binary"
     if prune_dev:
+        if rel.startswith((
+                "node_modules/@mixmark-io/domino/test/",
+                "node_modules/zod/src/v3/tests/",
+                "node_modules/zod/src/v4/classic/tests/",
+                "node_modules/zod/src/v4/core/tests/",
+                "node_modules/zod/src/v4/mini/tests/")):
+            return "package-tests"
         if "/typescript/" not in "/" + rel and low.endswith((".d.ts", ".d.mts", ".d.cts", ".tsbuildinfo")):
             return "dev-metadata"
         if low.endswith((".js.map", ".mjs.map", ".cjs.map", ".ts.map", ".css.map")):
             return "dev-metadata"
+        if rel == "node_modules/@mixmark-io/domino/.yarn/plugins/@yarnpkg/plugin-version.cjs":
+            return "package-build-tool"
     return None
 
 

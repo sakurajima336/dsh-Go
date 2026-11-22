@@ -80,6 +80,7 @@ class MarkdownBody extends StatefulWidget {
     this.selectable = true,
     this.secondary = false,
     this.repairBareViews = false,
+    this.replyTypography = false,
   });
 
   final String text;
@@ -99,6 +100,9 @@ class MarkdownBody extends StatefulWidget {
   /// 助手回复:模型把 `dsh-ui` 的 JSON 裸着写进正文时,也当成视图画
   /// (见 [fenceBareDshUiViews])。别的 Markdown(文档、说明页)不开。
   final bool repairBareViews;
+
+  /// 助手回复正文:当主题包声明启用阅读字体/行高时应用阅读排版。
+  final bool replyTypography;
 
   /// 表格单列最宽多少;更长的单元格在列内换行,而不是把整表拉得很长。
   static const _maxColumnWidth = 260.0;
@@ -284,7 +288,13 @@ class MarkdownBody extends StatefulWidget {
     Navigator.of(context).push(
       ArtifactPreviewPage.route(
         sessionId: sessionId,
-        artifact: Artifact(path: path, origin: ArtifactOrigin.linked, turn: 0),
+        artifact: Artifact(
+          path: path,
+          origin: ArtifactOrigin.linked,
+          turn: MarkdownImageScope.maybeOf(context)?.turn ?? 0,
+          snapshotImage:
+              MarkdownImageScope.maybeOf(context)?.turn != null && artifactKindOf(path) == ArtifactKind.image,
+        ),
       ),
     );
   }
@@ -563,7 +573,7 @@ class MarkdownBody extends StatefulWidget {
   /// change when the reply finishes. Formulas are left to the library's own hold.
   static String _prepareRevealed(String text, {required bool repairBareViews}) {
     final repaired = repairBareViews ? fenceBareDshUiViews(text) : text;
-    return boldTableHeaders(blankLineBeforeTables(normalizeMath(repaired)));
+    return prepareTables(normalizeMath(repaired));
   }
 
   static String _prepareSource(
@@ -573,7 +583,7 @@ class MarkdownBody extends StatefulWidget {
     StreamingMarkdownRepair? repair,
   }) {
     final repaired = repairBareViews ? fenceBareDshUiViews(text) : text;
-    final source = boldTableHeaders(blankLineBeforeTables(normalizeMath(repaired, streaming: streaming)));
+    final source = prepareTables(normalizeMath(repaired, streaming: streaming));
     if (!streaming) return source;
     return _withCursor(repair?.repair(source) ?? repairStreamingMarkdown(source));
   }
@@ -749,9 +759,13 @@ class _MarkdownBodyState extends State<MarkdownBody> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final body = widget.secondary
+    final themeStyle = DshThemeStyle.of(context);
+    final baseBody = widget.secondary
         ? AppType.chatBody(context, scale: 0.9, color: theme.colorScheme.onSurfaceVariant)
-        : AppType.chatBody(context, color: theme.colorScheme.onSurface);
+        : AppType.chatBody(context, color: themeStyle.onAssistantBubble ?? theme.colorScheme.onSurface);
+    final body = (widget.replyTypography && themeStyle.components.useReadingFontForReply)
+        ? themeStyle.readingTextStyle(baseBody)
+        : baseBody;
     final source = _source;
     final extra = MarkdownPatterns.maybeOf(context);
 

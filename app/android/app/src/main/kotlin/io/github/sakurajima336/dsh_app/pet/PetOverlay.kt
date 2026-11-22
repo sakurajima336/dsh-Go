@@ -58,7 +58,6 @@ import io.github.sakurajima336.dsh_app.voice.WavRecorder
 import java.util.Calendar
 import java.util.IdentityHashMap
 import java.util.concurrent.Executors
-import kotlin.math.max
 import kotlin.math.roundToInt
 import kotlin.random.Random
 
@@ -347,7 +346,10 @@ internal object PetOverlay {
         return mapOf(
             "enabled" to machine.enabled,
             "alwaysShow" to machine.alwaysShow,
-            "permission" to OverlayAccess.permission(a11y, canDraw, lastAdd).wire,
+            "permission" to OverlayAccess.permission(
+                a11y, canDraw, lastAdd,
+                a11yFailed = accessibilityRetry.remaining(PhoneA11yService.instance, now()) != null,
+            ).wire,
             "canDraw" to canDraw,
             "accessibility" to a11y,
             "snoozed" to machine.snoozed(now()),
@@ -582,7 +584,7 @@ internal object PetOverlay {
     private fun overlayHost(): OverlayHost = OverlayAccess.host(
         a11yConnected(), lastAdd,
         a11yFailed = accessibilityRetry.remaining(PhoneA11yService.instance, now()) != null,
-        canDraw = canDraw(),
+        canDraw = ::canDraw,
     )
 
     private fun canDraw(): Boolean = try { Settings.canDrawOverlays(app) } catch (_: Exception) { false }
@@ -679,7 +681,7 @@ internal object PetOverlay {
             PetPush.SLEEPING -> pack.primary(state, 0).let { listOf(PetIdleItem(it, it.totalMs, 1)) }
             else -> null
         }
-        player.setState(pack.primary(state, p.tier), calmPool, pack.bonusOf(state, p.tier), SystemClock.uptimeMillis())
+        player.setState(pack.primary(state, p.tier), calmPool, pack.bonusOf(state, p.tier), SystemClock.uptimeMillis(), pack::playMsOf)
         if (looping) restartLoop() else petView?.let { drawStill() }
     }
 
@@ -730,6 +732,7 @@ internal object PetOverlay {
         val view = petView ?: return
         val l = loaded ?: return
         player.still = !animationsOn()
+        view.blends = !player.still
         val f = player.frame(SystemClock.uptimeMillis()) ?: return
         if (!view.show(f.anim, f.index)) {
             l.request(f.anim) { if (alive(ticket) && loaded === l) redraw() }
@@ -756,6 +759,7 @@ internal object PetOverlay {
         if (!alive(ticket)) return
         val view = petView ?: return
         val l = loaded ?: return
+        view.blends = false
         val f = player.frame(SystemClock.uptimeMillis()) ?: return
         if (view.show(f.anim, f.index)) onShown() else l.request(f.anim) { if (alive(ticket) && loaded === l) redraw() }
     }
@@ -796,7 +800,7 @@ internal object PetOverlay {
         val p = petParams ?: return
         val l = loaded ?: return
         if (!alive(petTicket)) return
-        val next = l.frames.frameFor(v.shown, dragging)
+        val next = l.frames.frameFor(v.shown, dragging, v.fadingFrom)
         if (next == v.frame) return
         val rest = restPos(v, p)
         v.setFrame(next)
@@ -1066,6 +1070,10 @@ internal object PetOverlay {
     // ---- touch ----------------------------------------------------------------------------------
 
     private fun petListener(ticket: OverlayWindowOwner.Ticket) = object : PetView.Listener {
+        override fun onBlendEnd() {
+            if (alive(ticket)) fitFrame()
+        }
+
         override fun onDragStart() {
             if (!alive(ticket)) return
             val v = petView ?: return
@@ -1513,7 +1521,7 @@ internal object PetOverlay {
         val rest = restPos(pv, pp)
         val body = loaded?.frames?.body?.at(rest) ?: return false
         val g = PetWheelGeometry.fit(
-            if (view.hosts) machine.last?.hosts?.size?.coerceAtLeast(1) ?: 1 else menuItems(machine.last).size,
+            view.rowCount.coerceAtLeast(1),
             dock.side, body.centerX.toFloat(), body.centerY.toFloat(), safeArea(), ctx.resources.displayMetrics.density,
             if (view.hosts) 2f else ctx.resources.configuration.fontScale,
             view.labelWidth(),
